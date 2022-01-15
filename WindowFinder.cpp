@@ -44,7 +44,7 @@ BOOL WindowFinder::IsWindowFromCurrentProcess(HWND windowHandle) {
     return wcscmp(currentProcessName, processName) == 0;
 }
 
-BOOL CALLBACK EnumWindowsCallback(HWND windowHandle, long parameters) {
+BOOL CALLBACK EnumWindowsCallback(HWND windowHandle, LPARAM parameters) {
     EnumWindowsCallbackArgs *args = (EnumWindowsCallbackArgs *)parameters;
 
     if (args->windowFinder->currentWindowHandle == windowHandle) {
