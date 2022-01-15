@@ -109,7 +109,7 @@ void AppInstaller::Install() {
     HKEY hKey = NULL;
     RegCreateKey(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", &hKey);
     RegSetValueEx(hKey, L"AltBacktick", 0, REG_SZ, (BYTE *)executableInstallationPath.c_str(),
-                  (executableInstallationPath.length() + 1) * 2);
+                  ((DWORD)executableInstallationPath.length() + 1) * 2);
 
     wstring currentExecutablePath = GetCurrentProcessExecutablePath();
     currentExecutablePath.push_back('\0');
