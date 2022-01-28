@@ -1,5 +1,6 @@
 #pragma once
 #include <shlobj.h>
+#include <string>
 #include <vector>
 
 class WindowFinder {
@@ -9,7 +10,7 @@ class WindowFinder {
     BOOL IsWindowOnCurrentDesktop(HWND windowHandle);
     BOOL IsWindowFromCurrentProcess(HWND windowHandle);
     HWND currentWindowHandle;
-    LPWSTR currentProcessName;
+    std::wstring currentProcessName;
 
   private:
     IVirtualDesktopManager *desktopManager; // Win10 ++ only.

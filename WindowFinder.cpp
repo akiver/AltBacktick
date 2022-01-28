@@ -10,8 +10,8 @@ struct EnumWindowsCallbackArgs {
     vector<HWND> windowHandles;
 };
 
-LPWSTR GetProcessNameFromProcessId(const DWORD processId) {
-    LPWSTR filename = new WCHAR[MAX_PATH];
+wstring GetProcessNameFromProcessId(const DWORD processId) {
+    wchar_t filename[MAX_PATH] = {0};
     HANDLE processHandle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
 
     if (processHandle != nullptr) {
@@ -19,7 +19,7 @@ LPWSTR GetProcessNameFromProcessId(const DWORD processId) {
         CloseHandle(processHandle);
     }
 
-    return filename;
+    return wstring(filename);
 }
 
 BOOL WindowFinder::IsWindowOnCurrentDesktop(HWND windowHandle) {
@@ -39,9 +39,9 @@ BOOL WindowFinder::IsWindowOnCurrentDesktop(HWND windowHandle) {
 BOOL WindowFinder::IsWindowFromCurrentProcess(HWND windowHandle) {
     DWORD windowProcessId;
     GetWindowThreadProcessId(windowHandle, &windowProcessId);
-    LPWSTR processName = GetProcessNameFromProcessId(windowProcessId);
+    wstring processName = GetProcessNameFromProcessId(windowProcessId);
 
-    return wcscmp(currentProcessName, processName) == 0;
+    return currentProcessName == processName;
 }
 
 BOOL CALLBACK EnumWindowsCallback(HWND windowHandle, LPARAM parameters) {
