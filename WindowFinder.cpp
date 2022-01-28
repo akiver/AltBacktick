@@ -99,6 +99,7 @@ std::vector<HWND> WindowFinder::FindCurrentProcessWindows() {
 }
 
 WindowFinder::WindowFinder() : desktopManager(nullptr) {
-    CoInitialize(nullptr);
-    CoCreateInstance(__uuidof(VirtualDesktopManager), nullptr, CLSCTX_ALL, IID_PPV_ARGS(&desktopManager));
+    if (SUCCEEDED(CoInitialize(nullptr))) {
+        CoCreateInstance(CLSID_VirtualDesktopManager, nullptr, CLSCTX_ALL, IID_PPV_ARGS(&desktopManager));
+    }
 }
