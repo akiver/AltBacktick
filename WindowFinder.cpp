@@ -12,8 +12,7 @@ struct EnumWindowsCallbackArgs {
 
 wstring GetProcessNameFromProcessId(const DWORD processId) {
     wchar_t filename[MAX_PATH] = {0};
-    HANDLE processHandle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
-
+    HANDLE processHandle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ, FALSE, processId);
     if (processHandle != nullptr) {
         GetModuleFileNameEx(processHandle, NULL, filename, MAX_PATH);
         CloseHandle(processHandle);

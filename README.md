@@ -6,8 +6,6 @@ It's similar to [Easy Window Switcher](https://neosmart.net/EasySwitch/) but it 
 
 *The key `` ` `` (`backtick`) is above the `TAB` key on QWERTY keyboard but even if your keyboard is not QWERTY, the shortcut will be mapped to the key above the `TAB` key.*
 
-**Compatible Windows 10+ only!**
-
 ### Usage
 
 #### Installing
