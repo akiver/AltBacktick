@@ -36,15 +36,18 @@ int StartBackgroundApp() {
     }
 
     WindowFinder windowFinder;
-    HWND lastWindow = nullptr;
+
     while (GetMessage(&msg, nullptr, 0, 0)) {
         if (msg.message == WM_HOTKEY) {
             std::vector<HWND> windows = windowFinder.FindCurrentProcessWindows();
             HWND windowToFocus = nullptr;
-            for (const HWND &window : windows) {
-                if (window != lastWindow || windows.size() == 1) {
-                    windowToFocus = window;
-                }
+            if (windows.size() < 1) {
+                continue; 
+            }
+            if (msg.lParam & MOD_SHIFT){
+                windowToFocus = windows[0];
+            } else {
+                windowToFocus = *--windows.end();
             }
 
             if (windowToFocus != nullptr) {
@@ -54,7 +57,6 @@ int StartBackgroundApp() {
                     ShowWindow(windowToFocus, SW_RESTORE);
                 }
                 SetForegroundWindow(windowToFocus);
-                lastWindow = windowToFocus;
             }
         }
     }
