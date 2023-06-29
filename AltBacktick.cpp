@@ -16,7 +16,7 @@ int StartBackgroundApp() {
 
     MSG msg;
     UINT keyCode = MapVirtualKey(BACKTICK_SCAN_CODE, MAPVK_VSC_TO_VK);
-    if (!RegisterHotKey(NULL, NULL, MOD_ALT, keyCode)) {
+    if (!RegisterHotKey(NULL, 1, MOD_ALT, keyCode)) {
         DWORD lastError = GetLastError();
         if (lastError == ERROR_HOTKEY_ALREADY_REGISTERED) {
             MessageBox(
@@ -25,17 +25,29 @@ int StartBackgroundApp() {
             return 0;
         }
     }
+    if (!RegisterHotKey(NULL, 2, MOD_ALT | MOD_SHIFT, keyCode)){
+        DWORD lastError = GetLastError();
+        if (lastError == ERROR_HOTKEY_ALREADY_REGISTERED) {
+            MessageBox(
+                NULL, L"Failed to register the ALT+SHIFT+~ hotkey.\nMake sure no other application is already binding to it.",
+                L"Failed to register hotkey", MB_ICONEXCLAMATION);
+            return 0;
+        }
+    }
 
     WindowFinder windowFinder;
-    HWND lastWindow = nullptr;
+
     while (GetMessage(&msg, nullptr, 0, 0)) {
         if (msg.message == WM_HOTKEY) {
             std::vector<HWND> windows = windowFinder.FindCurrentProcessWindows();
             HWND windowToFocus = nullptr;
-            for (const HWND &window : windows) {
-                if (window != lastWindow || windows.size() == 1) {
-                    windowToFocus = window;
-                }
+            if (windows.size() < 1) {
+                continue; 
+            }
+            if (msg.lParam & MOD_SHIFT){
+                windowToFocus = windows[0];
+            } else {
+                windowToFocus = *--windows.end();
             }
 
             if (windowToFocus != nullptr) {
@@ -45,7 +57,6 @@ int StartBackgroundApp() {
                     ShowWindow(windowToFocus, SW_RESTORE);
                 }
                 SetForegroundWindow(windowToFocus);
-                lastWindow = windowToFocus;
             }
         }
     }
