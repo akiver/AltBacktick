@@ -21,7 +21,7 @@ It's similar to [Easy Window Switcher](https://neosmart.net/EasySwitch/) but it 
 
 ### Configuring
 
-When the program starts, it tries to read a possible `INI` configuration file located at `~/.altbacktick`.
+When the program starts, it tries to read a possible `INI` configuration file located at `~/.altbacktick`.  
 This file allows to configure the program and must be created manually if default values are not suitable.
 
 Example:
@@ -35,7 +35,7 @@ modifier_key=ctrl
 
 #### modifier_key
 
-The `modifier_key` option allows to change the modifier key that needs to be pressed to switch between windows.
+The `modifier_key` option allows to change the modifier key that needs to be pressed to switch between windows.  
 Possible values are `alt` and `ctrl`, default is `alt`.
 
 ## License
