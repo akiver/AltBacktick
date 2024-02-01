@@ -164,6 +164,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>deps\inih\cpp;deps\inih</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -177,6 +178,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;IGNORE_INSTALLATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>deps\inih\cpp;deps\inih</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -192,6 +194,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>deps\inih\cpp;deps\inih</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -203,6 +206,9 @@
   <ItemGroup>
     <ClInclude Include="AltBacktick.h" />
     <ClInclude Include="AppInstaller.h" />
+    <ClInclude Include="Config.h" />
+    <ClInclude Include="deps\inih\cpp\INIReader.h" />
+    <ClInclude Include="deps\inih\ini.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
@@ -211,6 +217,9 @@
   <ItemGroup>
     <ClCompile Include="AltBacktick.cpp" />
     <ClCompile Include="AppInstaller.cpp" />
+    <ClCompile Include="Config.cpp" />
+    <ClCompile Include="deps\inih\cpp\INIReader.cpp" />
+    <ClCompile Include="deps\inih\ini.c" />
     <ClCompile Include="WindowFinder.cpp" />
   </ItemGroup>
   <ItemGroup>

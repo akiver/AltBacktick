@@ -5,6 +5,8 @@
 #include <shlobj.h>
 #include <tlhelp32.h>
 #include <vector>
+#include <INIReader.h>
+#include "Config.h"
 
 int StartBackgroundApp() {
     HANDLE mutex = CreateMutex(NULL, FALSE, L"MyAltBacktickMutex");
@@ -16,11 +18,12 @@ int StartBackgroundApp() {
 
     MSG msg;
     UINT keyCode = MapVirtualKey(BACKTICK_SCAN_CODE, MAPVK_VSC_TO_VK);
-    if (!RegisterHotKey(NULL, NULL, MOD_ALT, keyCode)) {
+    UINT modifierKey = Config::GetInstance()->ModifierKey();
+    if (!RegisterHotKey(NULL, NULL, modifierKey, keyCode)) {
         DWORD lastError = GetLastError();
         if (lastError == ERROR_HOTKEY_ALREADY_REGISTERED) {
             MessageBox(
-                NULL, L"Failed to register the ALT+~ hotkey.\nMake sure no other application is already binding to it.",
+                NULL, L"Failed to register the hotkey.\nMake sure no other application is already binding to it.",
                 L"Failed to register hotkey", MB_ICONEXCLAMATION);
             return 0;
         }
