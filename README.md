@@ -40,4 +40,4 @@ Possible values are `alt` and `ctrl`, default is `alt`.
 
 ## License
 
-[GPL v2](https://github.com/akiver/AltBacktick/blob/master/LICENSE)
+[MIT](https://github.com/akiver/AltBacktick/blob/master/LICENSE)
