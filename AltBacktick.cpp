@@ -74,6 +74,15 @@ int StartBackgroundApp() {
             else
                 offset = 0;
             std::vector<HWND> windows = windowFinder.FindCurrentProcessWindows();
+
+            // Current window should be first if the user clicked or alt-tabbed to another window.
+            HWND curWindow = GetForegroundWindow();
+            std::vector<HWND>::iterator it = std::find(mru.begin(), mru.end(), curWindow);
+            if (it != mru.end()) {
+                mru.erase(it);
+            }
+            mru.insert(mru.begin(), curWindow);
+
             HWND windowToFocus = nullptr;
             /*for (std::vector<HWND>::iterator mruIt = mru.begin(); mruIt != mru.end();) {
                 std::vector<HWND>::iterator wIt = std::find(windows.begin(), windows.end(), *mruIt);
