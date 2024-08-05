@@ -15,3 +15,5 @@ class WindowFinder {
   private:
     IVirtualDesktopManager *desktopManager; // Win10 ++ only.
 };
+
+std::wstring GetProcessNameFromProcessId(const DWORD processId);
