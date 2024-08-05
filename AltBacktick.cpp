@@ -9,33 +9,43 @@
 #include "Config.h"
 #include <iostream>
 #include <sstream>
+#include <unordered_map>
 
 HWND lastWindow = nullptr;
 BOOL modifierPressed = false;
 BOOL hotkeyPressed = false;
-int offset = 0;
-std::vector<HWND> mru; // most recently used.
+std::unordered_map<std::wstring, int> offsets; // process name to current position in the handles vector.
+std::unordered_map<std::wstring, std::vector<HWND>> mruMap; // hash table of most recently used windows indexed by process name.
 UINT modifierKey;
 
 LRESULT CALLBACK KeyboardHook(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode == HC_ACTION) {
         if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN || wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
             KBDLLHOOKSTRUCT* kbEvent = (KBDLLHOOKSTRUCT *)lParam;
+            // Whether the configured modifier key is being pressed or released.
             modifierPressed = (modifierKey == MOD_CONTROL && (kbEvent->vkCode == VK_CONTROL || kbEvent->vkCode == VK_LCONTROL || kbEvent->vkCode == VK_RCONTROL)) ||
                               (modifierKey == MOD_ALT && (kbEvent->vkCode == VK_MENU || kbEvent->vkCode == VK_LMENU || kbEvent->vkCode == VK_RMENU));
-            if (modifierPressed && (wParam == WM_KEYUP || wParam == WM_SYSKEYUP)) {
-                if (hotkeyPressed && lastWindow != nullptr) {
-                    std::vector<HWND>::iterator it = std::find(mru.begin(), mru.end(), lastWindow);
+            if (modifierPressed && (wParam == WM_KEYUP /* || wParam == WM_SYSKEYUP*/)) {
+                // Get the Most Recently Used list for the currently focused window.
+                HWND currentWindow = GetForegroundWindow();
+                DWORD currentProcessId;
+                GetWindowThreadProcessId(currentWindow, &currentProcessId);
+                std::wstring currentProcessName = GetProcessNameFromProcessId(currentProcessId);
+                std::vector<HWND>& mru = mruMap[currentProcessName];
+                // After a WM_HOTKEY event, move focused window to the front.
+                if (hotkeyPressed && currentWindow != nullptr) {
+                    std::vector<HWND>::iterator it = std::find(mru.begin(), mru.end(), currentWindow);
                     if (it != mru.end()) {
                         mru.erase(it);
                     }
-                    mru.insert(mru.begin(), lastWindow);
+                    mru.insert(mru.begin(), currentWindow);
                 }
                 std::ostringstream oss;
-                oss << "Resetting offset to zero (was " << offset << ")" << std::endl;
+                oss << "Resetting offset to zero (was " << offsets[currentProcessName] << ")" << std::endl;
                 OutputDebugStringA(oss.str().c_str());
                 hotkeyPressed = false;
-                offset = 0;
+                lastWindow = currentWindow;
+                offsets[currentProcessName] = 0;
             }
         }
     }
@@ -68,20 +78,25 @@ int StartBackgroundApp() {
     while (GetMessage(&msg, nullptr, 0, 0)) {
       
         if (msg.message == WM_HOTKEY) {
-            hotkeyPressed = true;
-            if (mru.size() && mru.begin() + offset + 1 < mru.end())
-                offset++;
-            else
-                offset = 0;
+            // Get the Most Recently Used list for the currently focused window.
+            HWND currentWindowHandle = GetForegroundWindow();
+            DWORD currentProcessId;
+            GetWindowThreadProcessId(currentWindowHandle, &currentProcessId);
+            std::wstring currentProcessName = GetProcessNameFromProcessId(currentProcessId);
+            std::vector<HWND>& mru = mruMap[currentProcessName];
+            int& offset = offsets[currentProcessName];
+            OutputDebugStringW(currentProcessName.c_str());
             std::vector<HWND> windows = windowFinder.FindCurrentProcessWindows();
 
             // Current window should be first if the user clicked or alt-tabbed to another window.
-            HWND curWindow = GetForegroundWindow();
-            std::vector<HWND>::iterator it = std::find(mru.begin(), mru.end(), curWindow);
-            if (it != mru.end()) {
-                mru.erase(it);
+            if (currentWindowHandle != lastWindow) {
+                HWND curWindow = GetForegroundWindow();
+                std::vector<HWND>::iterator it = std::find(mru.begin(), mru.end(), curWindow);
+                if (it != mru.end()) {
+                    mru.erase(it);
+                }
+                mru.insert(mru.begin(), curWindow);
             }
-            mru.insert(mru.begin(), curWindow);
 
             HWND windowToFocus = nullptr;
             /*for (std::vector<HWND>::iterator mruIt = mru.begin(); mruIt != mru.end();) {
@@ -107,9 +122,15 @@ int StartBackgroundApp() {
                     mru.insert(mru.end(), window);
                 }
             }
+
             if (!mru.size())
                 continue;
-            windowToFocus = *(mru.begin() + offset);
+            if (mru.begin() + offset + 1 < mru.end())
+                offset++;
+            else
+                offset = 0;
+
+            windowToFocus = mru[offset];
             std::ostringstream oss;
             oss << "Window to focus " << windowToFocus << " at offset " << offset << std::endl;
             OutputDebugStringA(oss.str().c_str());
@@ -123,6 +144,7 @@ int StartBackgroundApp() {
                 SetForegroundWindow(windowToFocus);
                 lastWindow = windowToFocus;
             }
+            hotkeyPressed = true;
         }
     }
 
