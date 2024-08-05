@@ -13,19 +13,19 @@
 
 HWND lastWindow = nullptr;
 BOOL modifierPressed = false;
-BOOL hotkeyPressed = false;
+BOOL hotkeyPressed = false; // whether hotkey has been pressed since the last Alt or Ctrl WM_KEYUP event
 std::unordered_map<std::wstring, int> offsets; // process name to current position in the handles vector.
 std::unordered_map<std::wstring, std::vector<HWND>> mruMap; // hash table of most recently used windows indexed by process name.
 UINT modifierKey;
 
 LRESULT CALLBACK KeyboardHook(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode == HC_ACTION) {
-        if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN || wParam == WM_KEYUP || wParam == WM_SYSKEYUP) {
+        if (wParam == WM_KEYUP) {
             KBDLLHOOKSTRUCT* kbEvent = (KBDLLHOOKSTRUCT *)lParam;
             // Whether the configured modifier key is being pressed or released.
             modifierPressed = (modifierKey == MOD_CONTROL && (kbEvent->vkCode == VK_CONTROL || kbEvent->vkCode == VK_LCONTROL || kbEvent->vkCode == VK_RCONTROL)) ||
                               (modifierKey == MOD_ALT && (kbEvent->vkCode == VK_MENU || kbEvent->vkCode == VK_LMENU || kbEvent->vkCode == VK_RMENU));
-            if (modifierPressed && (wParam == WM_KEYUP /* || wParam == WM_SYSKEYUP*/)) {
+            if (hotkeyPressed && modifierPressed) {
                 // Get the Most Recently Used list for the currently focused window.
                 HWND currentWindow = GetForegroundWindow();
                 DWORD currentProcessId;
@@ -40,9 +40,6 @@ LRESULT CALLBACK KeyboardHook(int nCode, WPARAM wParam, LPARAM lParam) {
                     }
                     mru.insert(mru.begin(), currentWindow);
                 }
-                std::ostringstream oss;
-                oss << "Resetting offset to zero (was " << offsets[currentProcessName] << ")" << std::endl;
-                OutputDebugStringA(oss.str().c_str());
                 hotkeyPressed = false;
                 lastWindow = currentWindow;
                 offsets[currentProcessName] = 0;
@@ -85,7 +82,6 @@ int StartBackgroundApp() {
             std::wstring currentProcessName = GetProcessNameFromProcessId(currentProcessId);
             std::vector<HWND>& mru = mruMap[currentProcessName];
             int& offset = offsets[currentProcessName];
-            OutputDebugStringW(currentProcessName.c_str());
             std::vector<HWND> windows = windowFinder.FindCurrentProcessWindows();
 
             // Current window should be first if the user clicked or alt-tabbed to another window.
@@ -99,26 +95,11 @@ int StartBackgroundApp() {
             }
 
             HWND windowToFocus = nullptr;
-            /*for (std::vector<HWND>::iterator mruIt = mru.begin(); mruIt != mru.end();) {
-                std::vector<HWND>::iterator wIt = std::find(windows.begin(), windows.end(), *mruIt);
-                if (wIt == windows.end()) {
-                    // Invalid window?
-                    std::ostringstream oss;
-                    oss << "Invalid window " << *mruIt << std::endl; 
-                    OutputDebugStringA(oss.str().c_str());
-                    //std::cout << "Invalid window " << *mruIt << std::endl;
-                    mruIt = mru.erase(mruIt);
-                } else
-                    mruIt++;
-            }*/
             for (const HWND &window : windows) {
                 // Add any windows not in most recently used
                 //std::cout << "Adding window " << window << std::endl;
                 std::vector<HWND>::iterator it = std::find(mru.begin(), mru.end(), window);
                 if (it == mru.end()) {
-                    std::ostringstream oss;
-                    oss << "Adding window " << window << std::endl;
-                    OutputDebugStringA(oss.str().c_str());
                     mru.insert(mru.end(), window);
                 }
             }
@@ -131,9 +112,6 @@ int StartBackgroundApp() {
                 offset = 0;
 
             windowToFocus = mru[offset];
-            std::ostringstream oss;
-            oss << "Window to focus " << windowToFocus << " at offset " << offset << std::endl;
-            OutputDebugStringA(oss.str().c_str());
 
             if (windowToFocus != nullptr) {
                 WINDOWPLACEMENT placement;
