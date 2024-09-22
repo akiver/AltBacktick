@@ -13,8 +13,9 @@
 
 HWND lastWindow = nullptr;
 BOOL isModifierKeyPressed = false;
-std::unordered_map<std::wstring, std::deque<HWND>> mruMap; // MRU list indexed by process name.
-std::unordered_map<std::wstring, int> offsets; // Current position in the MRU list of windows for each process indexed by process name.
+WindowFinder windowFinder;
+std::unordered_map<std::wstring, std::deque<HWND>> mruMap; // MRU list indexed by process unique ID.
+std::unordered_map<std::wstring, int> offsets; // Current position in the MRU list of windows for each process indexed by process unique ID.
 UINT modifierKey;
 
 bool IsModifierKeyKeyboardEvent(const KBDLLHOOKSTRUCT *kbEvent) {
@@ -29,14 +30,14 @@ bool IsModifierKeyKeyboardEvent(const KBDLLHOOKSTRUCT *kbEvent) {
     return false;
 }
 
- void UpdateMRUForProcess(const HWND currentWindow, const std::wstring &processName) {
-    auto &mru = mruMap[processName];
+ void UpdateMRUForProcess(const HWND currentWindow, const std::wstring &processUniqueId) {
+    auto &mru = mruMap[processUniqueId];
     auto it = std::find(mru.begin(), mru.end(), currentWindow);
     if (it != mru.end()) {
         mru.erase(it);
     }
     mru.push_front(currentWindow);
-    offsets[processName] = 0; // Reset the offset after MRU update
+    offsets[processUniqueId] = 0; // Reset the offset after MRU update
 }
 
 LRESULT CALLBACK KeyboardHook(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -45,11 +46,9 @@ LRESULT CALLBACK KeyboardHook(int nCode, WPARAM wParam, LPARAM lParam) {
         if (IsModifierKeyKeyboardEvent(kbEvent)) {
             HWND currentWindow = GetForegroundWindow();
             if (currentWindow != nullptr) {
-                DWORD currentProcessId;
-                GetWindowThreadProcessId(currentWindow, &currentProcessId);
-                std::wstring currentProcessName = GetProcessNameFromProcessId(currentProcessId);
-                if (!currentProcessName.empty()) {
-                    UpdateMRUForProcess(currentWindow, currentProcessName);
+                std::wstring currentProcessUniqueId = windowFinder.GetProcessUniqueId(currentWindow);
+                if (!currentProcessUniqueId.empty()) {
+                    UpdateMRUForProcess(currentWindow, currentProcessUniqueId);
                 }
             }
 
@@ -88,20 +87,17 @@ int StartBackgroundApp() {
         return 0;
     }
 
-    WindowFinder windowFinder;
     while (GetMessage(&msg, nullptr, 0, 0)) {
       
         if (msg.message == WM_HOTKEY) {
             // Get the Most Recently Used list for the currently focused window.
             HWND currentWindowHandle = GetForegroundWindow();
-            DWORD currentProcessId;
-            GetWindowThreadProcessId(currentWindowHandle, &currentProcessId);
-            std::wstring currentProcessName = GetProcessNameFromProcessId(currentProcessId);
-            if (currentProcessName.empty()) {
+            std::wstring processUniqueId = windowFinder.GetProcessUniqueId(currentWindowHandle);
+            if (processUniqueId.empty()) {
                 continue;
             }
-            std::deque<HWND> &mru = mruMap[currentProcessName];
-            int& offset = offsets[currentProcessName];
+            std::deque<HWND> &mru = mruMap[processUniqueId];
+            int &offset = offsets[processUniqueId];
 
             // Remove windows in the queue that don't exist anymore.
             for (auto it = mru.begin(); it != mru.end();) {
@@ -114,7 +110,7 @@ int StartBackgroundApp() {
 
             // Current window should be first if the user clicked or alt-tabbed to another window.
             if (currentWindowHandle != lastWindow) {
-                UpdateMRUForProcess(currentWindowHandle, currentProcessName);
+                UpdateMRUForProcess(currentWindowHandle, processUniqueId);
             }
 
             std::vector<HWND> windows = windowFinder.FindCurrentProcessWindows();
