@@ -48,7 +48,9 @@ LRESULT CALLBACK KeyboardHook(int nCode, WPARAM wParam, LPARAM lParam) {
                 DWORD currentProcessId;
                 GetWindowThreadProcessId(currentWindow, &currentProcessId);
                 std::wstring currentProcessName = GetProcessNameFromProcessId(currentProcessId);
-                UpdateMRUForProcess(currentWindow, currentProcessName);
+                if (!currentProcessName.empty()) {
+                    UpdateMRUForProcess(currentWindow, currentProcessName);
+                }
             }
 
             isModifierKeyPressed = false;
@@ -95,6 +97,9 @@ int StartBackgroundApp() {
             DWORD currentProcessId;
             GetWindowThreadProcessId(currentWindowHandle, &currentProcessId);
             std::wstring currentProcessName = GetProcessNameFromProcessId(currentProcessId);
+            if (currentProcessName.empty()) {
+                continue;
+            }
             std::deque<HWND> &mru = mruMap[currentProcessName];
             int& offset = offsets[currentProcessName];
 
