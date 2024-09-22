@@ -98,6 +98,15 @@ int StartBackgroundApp() {
             std::deque<HWND> &mru = mruMap[currentProcessName];
             int& offset = offsets[currentProcessName];
 
+            // Remove windows in the queue that don't exist anymore.
+            for (auto it = mru.begin(); it != mru.end();) {
+                if (!IsWindow(*it)) {
+                    it = mru.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+
             // Current window should be first if the user clicked or alt-tabbed to another window.
             if (currentWindowHandle != lastWindow) {
                 UpdateMRUForProcess(currentWindowHandle, currentProcessName);
@@ -105,8 +114,8 @@ int StartBackgroundApp() {
 
             std::vector<HWND> windows = windowFinder.FindCurrentProcessWindows();
             for (const HWND &window : windows) {
-                if (std::find(mruMap[currentProcessName].begin(), mruMap[currentProcessName].end(), window) == mruMap[currentProcessName].end()) {
-                    mruMap[currentProcessName].push_back(window);
+                if (std::find(mru.begin(), mru.end(), window) == mru.end()) {
+                    mru.push_back(window);
                 }
             }
 
