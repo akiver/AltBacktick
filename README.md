@@ -29,6 +29,9 @@ Example:
 ```ini
 [keyboard]
 modifier_key=ctrl
+
+[behavior]
+ignore_minimized_windows=true
 ```
 
 **If you edit the configuration file while the program is running, you need to kill the program process and restart it!**
@@ -37,6 +40,10 @@ modifier_key=ctrl
 
 The `modifier_key` option allows to change the modifier key that needs to be pressed to switch between windows.  
 Possible values are `alt` and `ctrl`, default is `alt`.
+
+#### ignore_minimized_windows
+
+The `ignore_minimized_windows` option allows to ignore minimized windows when switching between windows.
 
 ## License
 

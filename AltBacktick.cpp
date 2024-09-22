@@ -70,7 +70,8 @@ int StartBackgroundApp() {
 
     MSG msg;
     UINT keyCode = MapVirtualKey(BACKTICK_SCAN_CODE, MAPVK_VSC_TO_VK);
-    modifierKey = Config::GetInstance()->ModifierKey();
+    Config* config = Config::GetInstance();
+    modifierKey = config->ModifierKey();
     if (!RegisterHotKey(NULL, NULL, modifierKey, keyCode)) {
         DWORD lastError = GetLastError();
         if (lastError == ERROR_HOTKEY_ALREADY_REGISTERED) {
@@ -100,11 +101,11 @@ int StartBackgroundApp() {
             int &offset = offsets[processUniqueId];
 
             // Remove windows in the queue that don't exist anymore.
-            for (auto it = mru.begin(); it != mru.end();) {
-                if (!IsWindow(*it)) {
-                    it = mru.erase(it);
+            for (auto handle = mru.begin(); handle != mru.end();) {
+                if (!IsWindow(*handle) || (config->IgnoreMinimizedWindows() && IsIconic(*handle))) {
+                    handle = mru.erase(handle);
                 } else {
-                    ++it;
+                    ++handle;
                 }
             }
 

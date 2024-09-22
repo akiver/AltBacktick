@@ -30,6 +30,7 @@ Config::Config() {
     }
 
     _modifierKey = reader.GetString("keyboard", "modifier_key", "alt");
+    _ignoreMinimizedWindows = reader.GetBoolean("behavior", "ignore_minimized_windows", FALSE);
 }
 
 

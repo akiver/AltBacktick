@@ -16,9 +16,14 @@ class Config {
 
             return MOD_ALT;
         }
+
+        BOOL IgnoreMinimizedWindows() const {
+            return _ignoreMinimizedWindows;
+        }
     private:
         Config();
         static Config *_instance;
 
         std::string _modifierKey;
+        BOOL _ignoreMinimizedWindows = FALSE;
 };

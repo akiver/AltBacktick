@@ -1,4 +1,7 @@
 #include "WindowFinder.h"
+
+#include "Config.h"
+
 #include <psapi.h>
 #include <vector>
 
@@ -77,6 +80,10 @@ BOOL CALLBACK EnumWindowsCallback(HWND windowHandle, LPARAM parameters) {
     EnumWindowsCallbackArgs *args = (EnumWindowsCallbackArgs *)parameters;
 
     if (GetForegroundWindow() == windowHandle) {
+        return TRUE;
+    }
+
+    if (Config::GetInstance()->IgnoreMinimizedWindows() && IsIconic(windowHandle)) {
         return TRUE;
     }
 
