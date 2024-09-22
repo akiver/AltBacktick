@@ -130,7 +130,7 @@ int StartBackgroundApp() {
 
             HWND windowToFocus = mru[offset];
 
-            if (windowToFocus != nullptr) {
+            if (windowToFocus != nullptr && windowToFocus != currentWindowHandle) {
                 WINDOWPLACEMENT placement;
                 GetWindowPlacement(windowToFocus, &placement);
                 if (placement.showCmd == SW_SHOWMINIMIZED) {

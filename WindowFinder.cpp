@@ -55,11 +55,12 @@ BOOL CALLBACK EnumWindowsCallback(HWND windowHandle, LPARAM parameters) {
     }
 
     DWORD windowStyle = (DWORD)GetWindowLongPtr(windowHandle, GWL_STYLE);
-    if ((windowStyle & WS_POPUP) != 0) {
+    DWORD windowExtendedStyle = (DWORD)GetWindowLongPtr(windowHandle, GWL_EXSTYLE);
+    BOOL hasAppWindowStyle = (windowExtendedStyle & WS_EX_APPWINDOW) != 0;
+    if ((windowStyle & WS_POPUP) != 0 && !hasAppWindowStyle) {
         return TRUE;
     }
 
-    DWORD windowExtendedStyle = (DWORD)GetWindowLongPtr(windowHandle, GWL_EXSTYLE);
     if ((windowExtendedStyle & WS_EX_TOOLWINDOW) != 0) {
         return TRUE;
     }
