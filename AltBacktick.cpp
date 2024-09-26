@@ -40,20 +40,45 @@ bool IsModifierKeyKeyboardEvent(const KBDLLHOOKSTRUCT *kbEvent) {
     offsets[processUniqueId] = 0; // Reset the offset after MRU update
 }
 
+#define WM_UNIQUEID WM_USER + 1
+DWORD threadId = 0;
+HANDLE threadHandle = nullptr;
+HANDLE conditionVariable = nullptr;
+
+DWORD WINAPI MoveWindowToFront(_In_ LPVOID parameter) {
+    UNREFERENCED_PARAMETER(parameter);
+    MSG msg;
+    if (SUCCEEDED(CoInitialize(nullptr))) {
+        PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+        while (GetMessage(&msg, nullptr, 0, 0)) {
+            if (msg.message != WM_UNIQUEID) {
+                continue;
+            }
+            HWND currentWindow = GetForegroundWindow();
+            if (currentWindow == nullptr) {
+                continue;
+            }
+            std::wstring currentProcessUniqueId = windowFinder.GetProcessUniqueId(currentWindow);
+            if (!currentProcessUniqueId.empty()) {
+                UpdateMRUForProcess(currentWindow, currentProcessUniqueId);
+            }
+            lastWindow = currentWindow;
+            SetEvent(conditionVariable);
+        }
+        return 1;
+    }
+    return 0;
+}
+
 LRESULT CALLBACK KeyboardHook(int nCode, WPARAM wParam, LPARAM lParam) {
     if (isModifierKeyPressed && nCode == HC_ACTION && wParam == WM_KEYUP) {
         KBDLLHOOKSTRUCT* kbEvent = (KBDLLHOOKSTRUCT *)lParam;
         if (IsModifierKeyKeyboardEvent(kbEvent)) {
-            HWND currentWindow = GetForegroundWindow();
-            if (currentWindow != nullptr) {
-                std::wstring currentProcessUniqueId = windowFinder.GetProcessUniqueId(currentWindow);
-                if (!currentProcessUniqueId.empty()) {
-                    UpdateMRUForProcess(currentWindow, currentProcessUniqueId);
-                }
-            }
+            WaitForSingleObject(conditionVariable, 0);
+            PostThreadMessage(threadId, WM_UNIQUEID, NULL, NULL);
+            WaitForSingleObject(conditionVariable, 0);
 
             isModifierKeyPressed = false;
-            lastWindow = currentWindow;
         }
     }
 
@@ -80,6 +105,17 @@ int StartBackgroundApp() {
                 L"Failed to register hotkey", MB_ICONEXCLAMATION);
             return 0;
         }
+    }
+
+    conditionVariable = CreateEventA(NULL, FALSE, TRUE, "uniqueIdEvent");
+    threadHandle = CreateThread(NULL, 0, &MoveWindowToFront, NULL, 0, &threadId);
+    if (conditionVariable == NULL) {
+        MessageBox(NULL, L"Failed to create event object.", L"Error", MB_ICONEXCLAMATION);
+        return 0;
+    }
+    if (threadHandle == NULL) {
+        MessageBox(NULL, L"Failed to create a thread.", L"Error", MB_ICONEXCLAMATION);
+        return 0;
     }
 
     HHOOK keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardHook, 0, 0);
@@ -149,6 +185,8 @@ int StartBackgroundApp() {
     if (mutex != nullptr) {
         CloseHandle(mutex);
         UnhookWindowsHookEx(keyboardHook);
+        CloseHandle(conditionVariable);
+        CloseHandle(threadHandle);
     }
 
     return static_cast<int>(msg.wParam);
