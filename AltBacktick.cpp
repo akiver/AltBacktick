@@ -9,6 +9,7 @@
 #include "Config.h"
 #include <deque>
 #include <sstream>
+#include <thread>
 #include <unordered_map>
 
 HWND lastWindow = nullptr;
@@ -46,10 +47,16 @@ LRESULT CALLBACK KeyboardHook(int nCode, WPARAM wParam, LPARAM lParam) {
         if (IsModifierKeyKeyboardEvent(kbEvent)) {
             HWND currentWindow = GetForegroundWindow();
             if (currentWindow != nullptr) {
-                std::wstring currentProcessUniqueId = windowFinder.GetProcessUniqueId(currentWindow);
-                if (!currentProcessUniqueId.empty()) {
-                    UpdateMRUForProcess(currentWindow, currentProcessUniqueId);
-                }
+                std::thread([currentWindow]() {
+                    HRESULT hr = CoInitialize(NULL);
+                    if (SUCCEEDED(hr)) {
+                        std::wstring currentProcessUniqueId = windowFinder.GetProcessUniqueId(currentWindow);
+                        if (!currentProcessUniqueId.empty()) {
+                            UpdateMRUForProcess(currentWindow, currentProcessUniqueId);
+                        }
+                        CoUninitialize();
+                    }
+                }).detach();
             }
 
             isModifierKeyPressed = false;
