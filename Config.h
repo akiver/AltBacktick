@@ -14,6 +14,10 @@ class Config {
                 return MOD_CONTROL;
             }
 
+             if (_modifierKey == "win") {
+                return MOD_WIN;
+            }
+
             return MOD_ALT;
         }
 

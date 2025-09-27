@@ -28,6 +28,11 @@ bool IsModifierKeyKeyboardEvent(const KBDLLHOOKSTRUCT *kbEvent) {
         return kbEvent->vkCode == VK_MENU || kbEvent->vkCode == VK_LMENU || kbEvent->vkCode == VK_RMENU;
     }
 
+        
+    if (modifierKey == MOD_WIN) {
+        return kbEvent->vkCode == VK_LWIN || kbEvent->vkCode == VK_RWIN;
+    }
+
     return false;
 }
 

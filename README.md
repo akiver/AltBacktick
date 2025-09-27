@@ -39,7 +39,7 @@ ignore_minimized_windows=true
 #### modifier_key
 
 The `modifier_key` option allows to change the modifier key that needs to be pressed to switch between windows.  
-Possible values are `alt` and `ctrl`, default is `alt`.
+Possible values are `alt`, `ctrl` and `win`, default is `alt`.
 
 #### ignore_minimized_windows
 
