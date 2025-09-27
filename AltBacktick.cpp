@@ -94,6 +94,17 @@ int StartBackgroundApp() {
         }
     }
 
+    int reverseHotkeyId = 1;
+    if (!RegisterHotKey(NULL, reverseHotkeyId, modifierKey | MOD_SHIFT, keyCode)) {
+        DWORD lastError = GetLastError();
+        if (lastError == ERROR_HOTKEY_ALREADY_REGISTERED) {
+            MessageBox(
+                NULL, L"Failed to register the reverse hotkey.\nMake sure no other application is already binding to it.",
+                L"Failed to register reverse hotkey", MB_ICONEXCLAMATION);
+            return 0;
+        }
+    }
+
     HHOOK keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardHook, 0, 0);
     if (keyboardHook == NULL) {
         MessageBox(NULL, L"Failed to register keyboard hook.", L"Error", MB_ICONEXCLAMATION);
@@ -136,10 +147,20 @@ int StartBackgroundApp() {
             if (mru.empty()) {
                 continue;
             }
-            if (mru.begin() + offset + 1 < mru.end()) {
-                offset++;
+
+            bool isReverseDirection = msg.wParam == reverseHotkeyId;
+            if (isReverseDirection) {
+                if (offset > 0) {
+                    offset--;
+                } else {
+                    offset = mru.size() - 1;
+                }
             } else {
-                offset = 0;
+                if (mru.begin() + offset + 1 < mru.end()) {
+                    offset++;
+                } else {
+                    offset = 0;
+                }
             }
 
             HWND windowToFocus = mru[offset];

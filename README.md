@@ -1,10 +1,11 @@
-`AltBacktick` is a small Windows program that runs in background and allows to switch between windows of the same program using the keyboard shortcut `ALT`+`` ` `` (the `ALT` key can be configured).
+`AltBacktick` is a small Windows program that runs in background and allows to switch between windows of the same program using the keyboard shortcut `ALT`+`` ` `` (the `ALT` key can be configured).  
+To cycle through windows in reverse order, hold `SHIFT` while pressing the modifier key.
 
 ![AltBacktick](./demo.gif)
 
 It's similar to [Easy Window Switcher](https://neosmart.net/EasySwitch/) but it supports more programs (for instance TablePlus), handles minimized windows and is open source.
 
-*The key `` ` `` (`backtick`) is above the `TAB` key on QWERTY keyboard but even if your keyboard is not QWERTY, the shortcut will be mapped to the key above the `TAB` key.*
+_The key `` ` `` (`backtick`) is above the `TAB` key on QWERTY keyboard but even if your keyboard is not QWERTY, the shortcut will be mapped to the key above the `TAB` key._
 
 ## Usage
 
