@@ -15,6 +15,12 @@ _The key `` ` `` (`backtick`) is above the `TAB` key on QWERTY keyboard but even
 2. Run the program
 3. Click on `Automatically start AltBacktick` (or `Run AltBacktick without installing` if you only want to run it)
 
+To install without the prompt, run the program with the `--install` argument:
+
+```shell
+AltBacktick.exe --install
+```
+
 ### Uninstalling
 
 1. Run the program
