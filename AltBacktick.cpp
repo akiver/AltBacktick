@@ -191,12 +191,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                       _In_ int nCmdShow) {
     UNREFERENCED_PARAMETER(hInstance);
     UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
     UNREFERENCED_PARAMETER(nCmdShow);
 
 #if IGNORE_INSTALLATION
     return StartBackgroundApp();
 #endif
+
+    if (lpCmdLine != nullptr && wcsstr(lpCmdLine, L"--install") != nullptr) {
+        AppInstaller::Install();
+        return 0;
+    }
 
     int exitCode = 0;
     BOOL isAppStartedFromLocalAppDataFolder = AppInstaller::IsAppStartedFromLocalAppDataFolder();
