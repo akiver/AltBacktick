@@ -114,6 +114,8 @@ void AppInstaller::Install() {
     wstring currentExecutablePath = GetCurrentProcessExecutablePath();
     currentExecutablePath.push_back('\0');
 
+    KillAppProcess();
+
     SHFILEOPSTRUCT fileOperation = {nullptr};
     fileOperation.wFunc = FO_COPY;
     fileOperation.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOCONFIRMMKDIR | FOF_NOERRORUI | FOF_FILESONLY;
